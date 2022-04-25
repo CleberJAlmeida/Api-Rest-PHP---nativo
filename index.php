@@ -37,3 +37,6 @@ if ($metodo == "GET") {
 if ($metodo == "POST") {
     ServicosApi::Inserir($api, $_POST); // se parametro estiver um valor recebe o valor, se não fica null
 }
+if ($metodo == "DELETE") {
+    ServicosApi::Deletar($api, $parametro); // se parametro estiver um valor recebe o valor, se não fica null
+}
