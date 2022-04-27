@@ -19,24 +19,27 @@ class ServicosApi
         if ($obj) {
             echo json_encode(["dados" => $obj], JSON_UNESCAPED_UNICODE);
         } else {
-            echo json_encode(["dados" => "sem dados"], JSON_UNESCAPED_UNICODE);
+            echo json_encode(["Erro:" => "sem dados"], JSON_UNESCAPED_UNICODE);
         }
     }
     public static function Inserir(string $tabela, $dados) // se acaso o $id não estiver declaro 
     {
+        $valores = null;
         $colunas = null;
         foreach ($dados as $chave => $valor) { // pega somente o nome dentro do array, não pega o valor do array
             $colunas .= $chave . ",";
+            $valores .= is_numeric($valor) ? $valor . "," : "'{$valor}'" . ",";
         }
+        $valores = (substr($valores, 0, strlen($valores) - 1));; // retira a ultima virgula pra ficar com a sintaxe correta, usada no sql
         $colunas = (substr($colunas, 0, strlen($colunas) - 1)); // prepara a string pra fica com os parametros das colunas a serem inserida no banco
-        $strin = "INSERT INTO {$tabela}({$colunas}) VALUES ('" . $dados['nome'] . "','" . $dados['login'] . "','" . $dados['senha'] . "')";
+        $strin = "INSERT INTO {$tabela}({$colunas}) VALUES ({$valores})";
         $db = ComDB::connect();
         $rs = $db->prepare($strin);
         $rs->execute();
         if ($rs->rowCount() > 0) {
-            echo json_encode(["Usuarios inserido com sucesso"], JSON_UNESCAPED_UNICODE);
+            echo json_encode(["Sucesso: informação inserida com sucesso"], JSON_UNESCAPED_UNICODE);
         } else {
-            throw new Exception("Falha ao inserir");
+            throw new Exception("Erro: Falha ao inserir");
         }
     }
     public static function Deletar(string $tabela, string $id) // se acaso o $id não estiver declaro 
@@ -48,11 +51,33 @@ class ServicosApi
         $db = ComDB::connect();
         $rs = $db->prepare("DELETE FROM {$tabela} WHERE id={$id}");
         $rs->execute();
-        $obj = $rs->fetchAll(\PDO::FETCH_ASSOC);
-        if ($obj) {
-            echo json_encode(["dados" => $obj], JSON_UNESCAPED_UNICODE);
+        if ($rs->rowCount() > 0) {
+            echo json_encode(["Sucesso: informação deletada"], JSON_UNESCAPED_UNICODE);
         } else {
-            echo json_encode(["dados" => "sem dados"], JSON_UNESCAPED_UNICODE);
+            echo json_encode(["Erro: falha de execução" => "sem dados"], JSON_UNESCAPED_UNICODE);
+        }
+    }
+    public static function Editar(string $tabela, string $id, $dados) // se acaso o $id não estiver declaro 
+    {
+        if (!isset($id) || ($id == "")) {
+            echo json_encode(["erro" => "id não especificado"], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        $colunas = null;
+        foreach ($dados as $chave => $valor) { // pega somente o nome dentro do array, não pega o valor do array
+            if (is_string($valor)) {
+                $valor = "'{$valor}'";
+            }
+            $colunas .= "{$chave}={$valor},";
+        }
+        $colunas = (substr($colunas, 0, strlen($colunas) - 1)); // prepara a string pra fica com os parametros das colunas a serem inserida no banco
+        $db = ComDB::connect();
+        $rs = $db->prepare("UPDATE {$tabela} SET {$colunas} WHERE id={$id}");
+        $rs->execute();
+        if ($rs->rowCount() > 0) {
+            echo json_encode(["Sucesso:" => "informação editada"], JSON_UNESCAPED_UNICODE);
+        } else {
+            echo json_encode(["Erro: " => "Falha na execução"], JSON_UNESCAPED_UNICODE);
         }
     }
 }
