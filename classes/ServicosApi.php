@@ -13,7 +13,8 @@ class ServicosApi
             $conti_sql = "WHERE id=$id";
         }
         $db = ComDB::connect();
-        $rs = $db->prepare("SELECT * FROM $tabela $conti_sql");
+        $strin = "SELECT * FROM $tabela $conti_sql";
+        $rs = $db->prepare($strin);
         $rs->execute();
         $obj = $rs->fetchAll(\PDO::FETCH_ASSOC);
         if ($obj) {
@@ -79,5 +80,44 @@ class ServicosApi
         } else {
             echo json_encode(["Erro: " => "Falha na execução"], JSON_UNESCAPED_UNICODE);
         }
+    }
+    public static function Login($dados)
+    {
+        $tabela = 'usuarios';
+        $colunas = [];
+        $valores = [];
+        foreach ($dados as $chave => $valor) { // pega somente o nome dentro do array, não pega o valor do array
+            array_push($colunas, $chave);
+            Array_push($valores, $valor);
+        }
+        //verifica o conteudo do login
+        if ($colunas[0] == 'login') {
+            $login = $colunas[0];
+            $valor_login = $valores[0];
+        } else {
+            throw new Exception("Erro: Falha de login");
+        }
+        //verifica o conteudo da senha
+        if ($colunas[1] == 'senha') {
+            $senha = $colunas[1];
+            $valor_senha = $valores[1];
+        } else {
+            throw new Exception("Erro: Falha de conteúdo");
+        }
+
+        $strin = "SELECT * FROM {$tabela} WHERE {$login}='{$valor_login}' AND {$senha}='{$valor_senha}'";
+
+        $db = ComDB::connect();
+        $rs = $db->prepare($strin);
+        $rs->execute();
+        $obj = $rs->fetch(\PDO::FETCH_ASSOC);
+
+        if ($obj) {
+            echo json_encode(["dados" => $obj], JSON_UNESCAPED_UNICODE);
+        } else {
+            echo json_encode(["Erro:" => "Login ou senha incorretos"], JSON_UNESCAPED_UNICODE);
+        }
+
+        CreateToken::GerarToken($obj['login'], $obj['id']);
     }
 }
