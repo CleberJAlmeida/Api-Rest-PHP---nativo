@@ -25,30 +25,35 @@ if (isset($_GET['path'])) {
 include_once('autoload.php');
 include_once('classes/config.php');
 
+use classes\GerirToken;
 use classes\ServicosApi;
 //trata as string, pra deixa-lás uniforme
 $api = ucfirst($api);
 //se for diferente de login
 //se não for encontrado o serviço no array entao é finalizada a rotina
 if ($api != 'Login' && !in_array($servico, $tipos_servicos, false)) { //ucfirst deixa a primeira letra maiuscula... 
-    echo json_encode(["Serviço não encontrado!"], JSON_UNESCAPED_UNICODE);
+    print json_encode(["Serviço não encontrado!"], JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+$gerirToken = new GerirToken(); // instanciando a classe que trata os token
+
 if ($metodo == "GET") {
-    ServicosApi::Listar($api, $parametro ?? null); // se parametro estiver um valor recebe o valor, se não fica null
+    $gerirToken->VerificarToken() ? ServicosApi::Listar($api, $parametro ?? null) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE)); // se parametro estiver um valor recebe o valor, se não fica null
 }
 if ($metodo == "POST" && $servico == "Inserir") {
-    ServicosApi::Inserir($api, $_POST); // se parametro estiver um valor recebe o valor, se não fica null
+    $gerirToken->VerificarToken() ? ServicosApi::Inserir($api, $_POST) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
 }
 if ($metodo == "DELETE") {
-    ServicosApi::Deletar($api, $parametro); // se parametro estiver um valor recebe o valor, se não fica null
+    $gerirToken->VerificarToken() ? ServicosApi::Deletar($api, $parametro) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
 }
 
 if ($metodo == "PUT") {
     $putdata = json_decode(file_get_contents("php://input", "r"));
-    ServicosApi::Editar($api, $parametro, $putdata); // se parametro estiver um valor recebe o valor, se não fica null
+    $gerirToken->VerificarToken() ? ServicosApi::Editar($api, $parametro, $putdata) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
 }
 
+// login não precisa de token, pois através do login bem sucedido que será gerado um token para o cliente
 if ($metodo == "POST" && $api == "Login") {
     if ($_POST != null) {
         ServicosApi::Login($_POST); //prepara pra fazer login e retornar o token
