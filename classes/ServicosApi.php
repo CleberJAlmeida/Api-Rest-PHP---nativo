@@ -72,8 +72,9 @@ class ServicosApi
             $colunas .= "{$chave}={$valor},";
         }
         $colunas = (substr($colunas, 0, strlen($colunas) - 1)); // prepara a string pra fica com os parametros das colunas a serem inserida no banco
+        $strin = "UPDATE {$tabela} SET {$colunas} WHERE id={$id}";
         $db = ComDB::connect();
-        $rs = $db->prepare("UPDATE {$tabela} SET {$colunas} WHERE id={$id}");
+        $rs = $db->prepare($strin);
         $rs->execute();
         if ($rs->rowCount() > 0) {
             echo json_encode(["Sucesso:" => "informação editada"], JSON_UNESCAPED_UNICODE);

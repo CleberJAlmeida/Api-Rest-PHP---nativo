@@ -23,7 +23,7 @@ class GerirToken
 
         //payload / content
         $content = [
-            'exp' => (new DateTime('now'))->getTimestamp(),
+            // 'exp' => (new DateTime('now'))->getTimestamp(),
             'login' => $login,
             'uid' => $id
         ];
@@ -45,24 +45,30 @@ class GerirToken
         return $token;
     }
 
-    function VerificarToken()
+    function VerificarToken($token)
     {
+        $statusToken = false;
         // pegando o token no bearer
-        $http_header = apache_request_headers();
-        $bearer = explode(" ", $http_header['Authorization']);
-        $token = $bearer[1];
+        // $http_header = apache_request_headers();
+
+        //evitar da diferença entre maiuscula e minuscula no authorization
+        //$bearer =isset($http_header['authorization']) ? explode(" ", $http_header['authorization']) : explode(" ", $http_header['Authorization']);
+
+        // $token = $bearer[1];
 
         $part = explode(".", $token);
         $header = $part[0];
         $content = $part[1];
         $signature = $part[2];
+        $signature = str_replace("/", "\/", $signature);
 
         $valid = hash_hmac('sha256', $header . "." . $content, $this->key, true);
-        $valid = base64_encode($valid);
+        $valid = str_replace("/", "\/", base64_encode($valid));
 
-        if ($signature === $valid) {
-            return true;
+        if ($signature == $valid) {
+            $statusToken = true;
         }
-        return false;
+
+        return $statusToken;
     }
 }

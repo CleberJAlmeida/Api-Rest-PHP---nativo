@@ -39,18 +39,27 @@ if ($api != 'Login' && !in_array($servico, $tipos_servicos, false)) { //ucfirst 
 $gerirToken = new GerirToken(); // instanciando a classe que trata os token
 
 if ($metodo == "GET") {
-    $gerirToken->VerificarToken() ? ServicosApi::Listar($api, $parametro ?? null) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE)); // se parametro estiver um valor recebe o valor, se não fica null
+    $dados = json_decode(file_get_contents("php://input", "r"));
+    $token = $dados->token;
+    $gerirToken->VerificarToken($token) ? ServicosApi::Listar($api, $parametro ?? null) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE)); // se parametro estiver um valor recebe o valor, se não fica null
 }
 if ($metodo == "POST" && $servico == "Inserir") {
-    $gerirToken->VerificarToken() ? ServicosApi::Inserir($api, $_POST) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
+    $dados = json_decode(file_get_contents("php://input", "r"), true);
+    $token = $dados['token'];
+    $dados_input = array_slice($dados, 0, -1); // essa função inicia em 0 e retira o token do array
+    $gerirToken->VerificarToken($token) ? ServicosApi::Inserir($api, $dados_input) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
 }
 if ($metodo == "DELETE") {
-    $gerirToken->VerificarToken() ? ServicosApi::Deletar($api, $parametro) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
+    $dados = json_decode(file_get_contents("php://input", "r"), true);
+    $token = $dados['token'];
+    $gerirToken->VerificarToken($token) ? ServicosApi::Deletar($api, $parametro) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
 }
 
 if ($metodo == "PUT") {
-    $putdata = json_decode(file_get_contents("php://input", "r"));
-    $gerirToken->VerificarToken() ? ServicosApi::Editar($api, $parametro, $putdata) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
+    $dados = json_decode(file_get_contents("php://input", "r"), true);
+    $token = $dados['token'];
+    $dados_input = array_slice($dados, 0, -1); // essa função inicia em 0 e retira o token do array
+    $gerirToken->VerificarToken($token) ? ServicosApi::Editar($api, $parametro, $dados_input) : print(json_encode(["Token inválido!"], JSON_UNESCAPED_UNICODE));; // se parametro estiver um valor recebe o valor, se não fica null
 }
 
 // login não precisa de token, pois através do login bem sucedido que será gerado um token para o cliente
