@@ -60,11 +60,11 @@ class GerirToken
         $header = $part[0];
         $content = $part[1];
         $signature = $part[2];
-        $signature = str_replace("/", "\/", $signature);
-
+        $signature = str_replace("/", "\/", ($signature));
+        
         $valid = hash_hmac('sha256', $header . "." . $content, $this->key, true);
         $valid = str_replace("/", "\/", base64_encode($valid));
-
+        //var_dump($signature, $valid);
         if ($signature == $valid) {
             $statusToken = true;
         }

@@ -117,7 +117,7 @@ class ServicosApi
             $gerirToken = new GerirToken();
             $token = $gerirToken->GerarToken($obj['login'], $obj['id']);
             echo json_encode([
-                "Dados" => [
+                "dados" => [
                     "login" => $obj['login'],
                     "id" => $obj['id'],
                     "nome" => $obj['nome']
